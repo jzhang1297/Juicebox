@@ -1,0 +1,16 @@
+{
+  "name": "juicebox_database",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "seed:dev": "nodemon ./db/seed.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "nodemon": "^2.0.16",
+    "pg": "^8.7.3"
+  }
+}
