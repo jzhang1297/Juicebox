@@ -3,12 +3,16 @@ const { Client } = require("pg");
 const client = new Client('postgres://localhost:5432/juicebox-dev');
 
 async function getAllUsers() {
-    const { rows } = await client.query(
-      `SELECT id, username, name, location, active 
-      FROM users;
-    `);
-  
-    return rows;
+    try {
+        const { rows } = await client.query(
+            `SELECT id, username, name, location, active 
+            FROM users;
+        `);
+        
+        return rows;
+    } catch (err) {
+        throw err;
+    }
 };
 
 async function createUser({ username, password, name, location }) {
@@ -73,16 +77,15 @@ async function updatePost(postId, fields = {}) {
     const setString = Object.keys(fields).map(
         (key, index) => `"${ key }"=$${ index + 1 }`
         ).join(', ');
+
     try {
         if(setString.length > 0) {
-            const { rows: [ post ] } = await client.query(`
+            await client.query(`
                 UPDATE posts
                 SET ${ setString }
                 WHERE id=${ postId }
                 RETURNING *;
             `, Object.values(fields));
-
-            return post;
         }
         // return early if there's no tags to update
         if(tags === undefined) {
@@ -169,6 +172,13 @@ async function getPostById(postId) {
             FROM posts
             where id=$1
         `, [postId]);
+
+        if(!post) {
+            throw {
+                name: "PostNotFoundError",
+                message: "Could not find a post with that postId"
+            };
+        }
 
         const { rows: tags } = await client.query(`
             SELECT tags.*
@@ -269,6 +279,32 @@ async function getPostsByTagName(tagName) {
     }
 };
 
+async function getAllTags() {
+    try {
+        const { rows } = await client.query(`
+            SELECT * 
+            FROM tags;
+        `);
+        return rows;
+    } catch (err) {
+        throw err;
+    }
+};
+
+async function getUserByUsername(username) {
+    try {
+        const { rows: [user] } = await client.query(`
+            SELECT *
+            FROM users
+            WHERE username=$1;
+        `, [username]);
+  
+      return user;
+    } catch (error) {
+      throw error;
+    }
+};
+
 module.exports = {
     client,
     getAllUsers,
@@ -284,4 +320,6 @@ module.exports = {
     addTagsToPost,
     getPostById,
     getPostsByTagName,
+    getAllTags,
+    getUserByUsername,
 }
