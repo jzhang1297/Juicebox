@@ -22,6 +22,10 @@ app.use((req, res, next) => {
     next();
 });
 
+app.get('/', (req, res) => {
+    res.send("Juicebox api")
+});
+
 app.use('/api', (req, res, next) => {
     console.log("A request was made to /api");
     next();
